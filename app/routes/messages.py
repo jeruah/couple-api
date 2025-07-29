@@ -10,7 +10,6 @@ from app.utils.concurrent import verify_album_access
 from app import crud
 
 
-
 messages_router = APIRouter(prefix="/chats", tags=["chat"])
 
 class ConnectionManager:

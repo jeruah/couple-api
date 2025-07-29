@@ -43,7 +43,7 @@ def login(user_log: UserLogin, response: Response, db: Session = Depends(get_db)
         value=f"Bearer {access_token}",
         httponly=True,
         samesite="strict",
-        secure=False
+        secure=False,  # change to True in production
     )
 
     return {"message": "Login successful"}
