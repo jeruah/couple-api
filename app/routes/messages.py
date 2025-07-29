@@ -6,6 +6,7 @@ from app.database import get_db
 import app.models as models
 from app.schemas import MessageCreate, MessageResponse, ChatResponse, UserResponse
 from app.utils.security import get_current_user, get_current_user_ws
+from app import crud
 
 
 messages_router = APIRouter(prefix="/chats", tags=["chat"])
@@ -75,10 +76,11 @@ def create_message(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    new_message = models.Message(content=message.content, chat_id=chat_id, sender_id=current_user.id)
-    db.add(new_message)
-    db.commit()
-    db.refresh(new_message)
+    new_message = crud.create_message(
+        db,
+        MessageCreate(chat_id=chat_id, content=message.content),
+        sender_id=current_user.id,
+    )
     return new_message
 
 
@@ -109,10 +111,11 @@ async def chat_websocket(
             content = data.get("content")
             if not content:
                 continue
-            message = models.Message(content=content, chat_id=chat_id, sender_id=user.id)
-            db.add(message)
-            db.commit()
-            db.refresh(message)
+            message = crud.create_message(
+                db,
+                MessageCreate(chat_id=chat_id, content=content),
+                sender_id=user.id,
+            )
             await manager.broadcast(
                 chat_id,
                 {
