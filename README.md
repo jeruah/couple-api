@@ -25,6 +25,12 @@ uvicorn app.main:app --reload
 
 Visit `/initdb` once to create the SQLite database.
 
+### WebSocket chat
+
+Connect to `ws://<host>/chats/ws/{chat_id}` to participate in a chat. Send JSON
+payloads like `{ "content": "Hello" }` and the server will broadcast messages
+to all connected clients in real time.
+
 ## Tests
 
 Run `pytest` to execute the test suite (no tests yet, but the command should succeed).
