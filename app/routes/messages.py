@@ -1,14 +1,14 @@
+
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from sqlmodel import Session, select
 from typing import List, Dict
-
 from app.database import get_db
 import app.models as models
 from app.schemas import MessageCreate, MessageResponse, ChatResponse, UserResponse
 from app.utils.security import get_current_user, get_current_user_ws
 
-messages_router = APIRouter(prefix="/chats", tags=["chat"])
 
+messages_router = APIRouter(prefix="/chats", tags=["chat"])
 
 class ConnectionManager:
     def __init__(self) -> None:
@@ -30,7 +30,6 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
-
 
 @messages_router.post("/{image_id}", response_model=ChatResponse)
 def create_chat(
@@ -95,7 +94,6 @@ def read_messages(
 
     messages = db.exec(select(models.Message).where(models.Message.chat_id == chat_id)).all()
     return messages
-
 
 @messages_router.websocket("/ws/{chat_id}")
 async def chat_websocket(

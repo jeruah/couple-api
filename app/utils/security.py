@@ -33,8 +33,7 @@ def get_current_user(request: Request, response: Response, db: Session = Depends
     except:
         response.delete_cookie("access")
         raise credentials_exception
-
-
+        
 async def get_current_user_ws(websocket: WebSocket, db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.WS_1008_POLICY_VIOLATION,
