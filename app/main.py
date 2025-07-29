@@ -5,6 +5,7 @@ from app.database import get_db, init_db
 import app.models as models
 
 import app.routes.users as users_router
+import app.routes.messages as messages_router
 
 app = FastAPI()
 
@@ -32,3 +33,4 @@ def start():
 
 app.include_router(users_router.auth_router)
 app.include_router(users_router.me_router)
+app.include_router(messages_router.messages_router)
