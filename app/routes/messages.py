@@ -64,14 +64,19 @@ def get_chat(
     db: Session = Depends(get_db),
 ):
     chat = db.exec(select(models.Chat).where(models.Chat.image_id == image_id)).first()
-    if not chat:
-        raise HTTPException(status_code=404, detail="Chat not found")
 
     image = db.get(models.Image, image_id)
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
 
     verify_album_access(image.album_id, db, current_user)
+
+    if not chat:
+        chat = models.Chat(image_id=image_id)
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+
     return chat
 
 
