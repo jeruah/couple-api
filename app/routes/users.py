@@ -27,7 +27,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-@auth_router.get("/login")
+@auth_router.post("/login")
 def login(user_log: UserLogin, response: Response, db: Session = Depends(get_db)):
     """login a user"""
     user = db.exec(select(models.User).filter(models.User.email == user_log.email)).first()
