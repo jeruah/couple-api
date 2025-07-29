@@ -25,6 +25,13 @@ uvicorn app.main:app --reload
 
 Visit `/initdb` once to create the SQLite database.
 
+## Authentication
+
+Use these endpoints to manage user accounts:
+
+- `POST /auth/register` - create a new account.
+- `POST /auth/login` - obtain an access token cookie.
+
 ### WebSocket chat
 
 Connect to `ws://<host>/chats/ws/{chat_id}` to participate in a chat. Send JSON
