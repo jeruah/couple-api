@@ -64,7 +64,7 @@ class MessageResponse(MessageBase):
 
 # 📌 Nuevo modelo de chat
 class ChatBase(BaseModel):
-    album_id: int  # El chat sigue ligado a un álbum
+    image_id: int
     created_at: datetime
 
 class ChatCreate(ChatBase):
@@ -72,8 +72,6 @@ class ChatCreate(ChatBase):
 
 class ChatResponse(ChatBase):
     id: int
-    album_id: int
-    created_at: datetime
     messages: List["MessageResponse"]
 
     class Config:

@@ -1,8 +1,12 @@
 from datetime import datetime, timedelta, timezone
+import os
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from dotenv import load_dotenv
 
-SECRET_KEY = "9925abe1038298ced4739420f823639bed3fc676a452f99f5ea3ce5075663938"
+load_dotenv()
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "change_me")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
