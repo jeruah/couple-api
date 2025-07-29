@@ -15,8 +15,7 @@ me_images_router = APIRouter(prefix='/{album_id}/images', tags=["me_images"])
 
 @me_images_router.post("/create")
 def create_image(album_id: int, image: ImageCreate, current_user: UserResponse = Depends(get_current_user), db: Session = Depends(get_db)):
-    album = participation_controller(album_id, db, current_user)[0]
-    participant = participation_controller(album_id, db, current_user)[1]
+    album, participant = participation_controller(album_id, db, current_user)
 
     if not album.owner_id == current_user.id and not participant:
         raise HTTPException(status_code=403, detail="Album not found")
@@ -34,8 +33,7 @@ def create_image(album_id: int, image: ImageCreate, current_user: UserResponse =
 
 @me_images_router.get("/", response_model=List[ImageResponse])
 def read_images(album_id: int, current_user: UserResponse = Depends(get_current_user), db: Session = Depends(get_db)):
-    participant = participation_controller(album_id, db, current_user)[1]
-    album = participation_controller(album_id, db, current_user)[0]
+    album, participant = participation_controller(album_id, db, current_user)
 
     if not album.owner_id == current_user.id and not participant:
         raise HTTPException(status_code=403, detail="Album not found")
@@ -49,8 +47,7 @@ def read_images_id(album_id:int, image_id: int, current_user: UserResponse = Dep
     image = get_image(album_id, image_id, db)
     not_found_exception(image, "Image not found")
 
-    participant = participation_controller(album_id, db, current_user)[1]
-    album = participation_controller(album_id, db, current_user)[0]
+    album, participant = participation_controller(album_id, db, current_user)
 
     if not album.owner_id == current_user.id and not participant:
         raise HTTPException(status_code=403, detail="Album not found")
@@ -63,8 +60,7 @@ def delete_image(album_id:int, image_id: int, current_user: UserResponse = Depen
 
     not_found_exception(image, "Image not found")
 
-    participant = participation_controller(album_id, db, current_user)[1]
-    album = participation_controller(album_id, db, current_user)[0]
+    album, participant = participation_controller(album_id, db, current_user)
 
     if not album.owner_id == current_user.id and not participant:
         raise HTTPException(status_code=403, detail="Album not found")
@@ -79,8 +75,7 @@ def update_image(album_id:int, image_id: int, image: ImageCreate, current_user: 
 
     not_found_exception(image_db, "Image not found")
 
-    participant = participation_controller(album_id, db, current_user)[1]
-    album = participation_controller(album_id, db, current_user)[0]
+    album, participant = participation_controller(album_id, db, current_user)
 
     if not album.owner_id == current_user.id and not participant:
         raise HTTPException(status_code=403, detail="Album not found")
