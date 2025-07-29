@@ -20,9 +20,7 @@ def create_image(album_id: int, image: ImageCreate, current_user: UserResponse =
     if not album.owner_id == current_user.id and not participant:
         raise HTTPException(status_code=403, detail="Album not found")
 
-    existing_image = get_image(album_id, image.id, db)
 
-    existing_element_exception(existing_image, "Image already exists")
 
     new_image = models.Image(title=image.title, description=image.description, path=image.image_path, album_id=album_id)
     db.add(new_image)
