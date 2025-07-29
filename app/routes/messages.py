@@ -1,12 +1,14 @@
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from sqlmodel import Session, select
 from typing import List, Dict
 from app.database import get_db
 import app.models as models
 from app.schemas import MessageCreate, MessageResponse, ChatResponse, UserResponse
 from app.utils.security import get_current_user, get_current_user_ws
+from app.utils.concurrent import verify_album_access
 from app import crud
+
 
 
 messages_router = APIRouter(prefix="/chats", tags=["chat"])
@@ -42,6 +44,8 @@ def create_chat(
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
 
+    verify_album_access(image.album_id, db, current_user)
+
     chat = db.exec(select(models.Chat).where(models.Chat.image_id == image_id)).first()
     if chat:
         return chat
@@ -62,6 +66,12 @@ def get_chat(
     chat = db.exec(select(models.Chat).where(models.Chat.image_id == image_id)).first()
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+
+    image = db.get(models.Image, image_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    verify_album_access(image.album_id, db, current_user)
     return chat
 
 
@@ -76,11 +86,17 @@ def create_message(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    new_message = crud.create_message(
-        db,
-        MessageCreate(chat_id=chat_id, content=message.content),
-        sender_id=current_user.id,
-    )
+    image = db.get(models.Image, chat.image_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    verify_album_access(image.album_id, db, current_user)
+
+    new_message = models.Message(content=message.content, chat_id=chat_id, sender_id=current_user.id)
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+
     return new_message
 
 
@@ -94,6 +110,12 @@ def read_messages(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
+    image = db.get(models.Image, chat.image_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    verify_album_access(image.album_id, db, current_user)
+
     messages = db.exec(select(models.Message).where(models.Message.chat_id == chat_id)).all()
     return messages
 
@@ -104,6 +126,23 @@ async def chat_websocket(
     db: Session = Depends(get_db),
 ):
     user = await get_current_user_ws(websocket, db)
+
+    chat = db.get(models.Chat, chat_id)
+    if not chat:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        raise HTTPException(status_code=status.WS_1008_POLICY_VIOLATION, detail="Chat not found")
+
+    image = db.get(models.Image, chat.image_id)
+    if not image:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        raise HTTPException(status_code=status.WS_1008_POLICY_VIOLATION, detail="Image not found")
+
+    try:
+        verify_album_access(image.album_id, db, user)
+    except HTTPException:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        raise
+
     await manager.connect(chat_id, websocket)
     try:
         while True:
