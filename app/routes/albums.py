@@ -73,9 +73,9 @@ def delete_album(album_id: int, current_user: UserResponse = Depends(get_current
     return {"message": "Album deleted successfully"}
 
 @me_albums_router.put("update/{album_id}")
-def update_album(album_id: int, album: AlbumCreate, current_user: UserResponse = Depends(get_current_user), db: Session = Depends(get_db)):
-    album = db.get(models.Album, album_id)
-    if not current_user.id == album.owner_id:
+def update_album(album_id: int, album_data: AlbumCreate, current_user: UserResponse = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_album = db.get(models.Album, album_id)
+    if not current_user.id == db_album.owner_id:
         participant = db.exec(select(models.AlbumParticipant).where(
             and_(
                 models.AlbumParticipant.user_id == current_user.id,
@@ -85,15 +85,15 @@ def update_album(album_id: int, album: AlbumCreate, current_user: UserResponse =
         if not participant:
             raise HTTPException(status_code=401, detail="denied")
 
-        album.title = album.title
+        db_album.title = album_data.title
         db.commit()
-        db.refresh(album)
-        return album
+        db.refresh(db_album)
+        return db_album
 
-    album.title = album.title
+    db_album.title = album_data.title
     db.commit()
-    db.refresh(album)
-    return album
+    db.refresh(db_album)
+    return db_album
 
 me_albums_router.include_router(images_router)
 me_albums_router.include_router(me_images_router)

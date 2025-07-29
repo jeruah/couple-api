@@ -14,8 +14,13 @@ def create_user(db: Session, user: UserCreate) -> models.User:
 def get_user(db: Session, user_id: int) -> Optional[models.User]:
     return db.get(models.User, user_id)
 
-def create_message(db: Session, message: MessageCreate) -> models.Message:
-    db_message = models.Message(chat_id=message.chat_id, sender_id=message.sender_id, content=message.content, sent_at=datetime.now(timezone.utc))
+def create_message(db: Session, message: MessageCreate, sender_id: int) -> models.Message:
+    db_message = models.Message(
+        chat_id=message.chat_id,
+        sender_id=sender_id,
+        content=message.content,
+        sent_at=datetime.now(timezone.utc),
+    )
     db.add(db_message)
     db.commit()
     db.refresh(db_message)

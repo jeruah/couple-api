@@ -7,6 +7,8 @@ import app.models as models
 from app.schemas import MessageCreate, MessageResponse, ChatResponse, UserResponse
 from app.utils.security import get_current_user, get_current_user_ws
 from app.utils.concurrent import verify_album_access
+from app import crud
+
 
 
 messages_router = APIRouter(prefix="/chats", tags=["chat"])
@@ -94,6 +96,7 @@ def create_message(
     db.add(new_message)
     db.commit()
     db.refresh(new_message)
+
     return new_message
 
 
@@ -147,10 +150,11 @@ async def chat_websocket(
             content = data.get("content")
             if not content:
                 continue
-            message = models.Message(content=content, chat_id=chat_id, sender_id=user.id)
-            db.add(message)
-            db.commit()
-            db.refresh(message)
+            message = crud.create_message(
+                db,
+                MessageCreate(chat_id=chat_id, content=content),
+                sender_id=user.id,
+            )
             await manager.broadcast(
                 chat_id,
                 {
